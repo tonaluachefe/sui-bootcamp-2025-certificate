@@ -18,13 +18,10 @@ function AppContent() {
   const [txDigest, setTxDigest] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
+    // Wallet Kit will automatically show a modal to select wallet
     try {
-      // Wallet Kit will show a modal to select wallet
-      const wallets = await connect()
-      if (!wallets || wallets.length === 0) {
-        alert('Nenhuma wallet encontrada. Por favor, instale Sui Wallet, Martian ou Ethos.')
-      }
+      connect()
     } catch (error) {
       console.error('Failed to connect wallet:', error)
       alert('Erro ao conectar wallet. Certifique-se de que uma wallet está instalada.')
