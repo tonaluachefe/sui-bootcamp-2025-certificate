@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 import { WalletKitProvider, useWalletKit } from '@mysten/wallet-kit'
 // @ts-ignore - type definitions issue with package exports
-import { TransactionBlock, getFullnodeUrl } from '@mysten/sui.js'
+import { TransactionBlock } from '@mysten/sui.js/transactions'
+// @ts-ignore
+import { getFullnodeUrl } from '@mysten/sui.js'
 import './App.css'
 
 // Package ID do contrato na mainnet
