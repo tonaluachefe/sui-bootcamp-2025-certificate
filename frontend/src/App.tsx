@@ -1,9 +1,6 @@
 import { useState, useRef } from 'react'
 import { WalletKitProvider, useWalletKit } from '@mysten/wallet-kit'
-// @ts-ignore - TransactionBlock import for sui.js 0.17.0
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { TransactionBlock, getFullnodeUrl } from '@mysten/sui.js'
+import { TransactionBlock, getFullnodeUrl } from './sui-helper'
 import './App.css'
 
 // Package ID do contrato na mainnet
