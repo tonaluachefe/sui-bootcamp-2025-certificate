@@ -40,6 +40,11 @@ Sui Testnet
 8WhwdMU2Eb3qmrqH967HGbtUDW3PMif1E4e4nYZddsbC
 ```
 
+### Wallet Address (Deployer)
+```
+0x963408595b26c34f7703936ce38da152996134041ac23ddac04b28b9c2cd5c64
+```
+
 ## Instruções para Obter o Package ID
 
 1. Certifique-se de ter o Sui CLI instalado
