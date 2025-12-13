@@ -4,12 +4,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Skip type checking during build to avoid issues with external libs
     emptyOutDir: true,
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
   },
   optimizeDeps: {
     include: ['@mysten/wallet-kit', '@mysten/sui.js'],
-  },
+    esbuildOptions: {
+      target: 'es2020'
+    }
+  }
 })
-
-
