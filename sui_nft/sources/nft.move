@@ -21,7 +21,7 @@ module sui_nft::nft {
     }
 
     /// Mint a new NFT to the sender
-    public entry fun mint(
+    entry fun mint(
         name: vector<u8>,
         description: vector<u8>,
         uri: vector<u8>,

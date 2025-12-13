@@ -32,9 +32,12 @@ Sui Testnet
 
 ## Package ID do Contrato
 ```
-<COLE AQUI O PACKAGE ID RETORNADO APÓS EXECUTAR: sui client publish --gas-budget 100000000>
+0x5292e8182c0b8904362a8b48e166330cc20bfd5043c1ea4b5b4c3d2975eae40b
+```
 
-O Package ID será retornado no output do comando de deploy, no formato: 0x...
+### Transaction Digest do Deploy
+```
+8WhwdMU2Eb3qmrqH967HGbtUDW3PMif1E4e4nYZddsbC
 ```
 
 ## Instruções para Obter o Package ID
