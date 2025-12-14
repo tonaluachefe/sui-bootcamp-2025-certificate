@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { WalletKitProvider, useWalletKit } from '@mysten/wallet-kit'
+import { WalletKitProvider, useWalletKit, ConnectButton } from '@mysten/wallet-kit'
 import { TransactionBlock, getFullnodeUrl } from './sui-helper'
 import './App.css'
 
@@ -262,7 +262,9 @@ function AppContent() {
         {!currentAccount ? (
           <div>
             <p>{t.connectWallet}</p>
-            <button onClick={handleConnect}>{t.connectButton}</button>
+            <ConnectButton className="connect-button" />
+            {/* Botão customizado como fallback */}
+            <button onClick={handleConnect} style={{ marginTop: '1rem' }}>{t.connectButton}</button>
           </div>
         ) : (
           <div>
