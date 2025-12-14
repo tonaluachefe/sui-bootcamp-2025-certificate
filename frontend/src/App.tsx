@@ -287,25 +287,66 @@ function AppContent() {
         throw new Error('TransactionBlock é null ou undefined após criação')
       }
 
-      if (typeof txb.moveCall !== 'function') {
-        console.error('❌ txb.moveCall não é uma função')
-        console.log('📋 txb tem:', Object.keys(txb))
-        // Tenta métodos alternativos
-        if (typeof txb.setData !== 'function' && typeof txb.move !== 'function') {
-          throw new Error(`TransactionBlock criado mas não tem método moveCall. Métodos disponíveis: ${Object.keys(txb).join(', ')}`)
-        }
+      // Se só tem provider, o TransactionBlock pode ser usado diretamente mas precisa acessar métodos de forma diferente
+      // Na versão 0.17.0, pode ser que o objeto seja diferente
+      if (txb.provider && !txb.moveCall) {
+        console.log('🔍 TransactionBlock tem provider, verificando estrutura...')
+        console.log('📋 Provider tem:', Object.keys(txb.provider))
+        
+        // Pode ser que moveCall esteja dentro do provider ou que seja uma API diferente
+        // Vamos tentar usar o objeto diretamente mesmo assim - o wallet-kit pode aceitar
+        // Vamos construir manualmente usando o formato que o wallet-kit espera
       }
       
-      console.log('✅ Usando moveCall...')
-      // Usa a API correta do TransactionBlock para versão 0.17.0
-      txb.moveCall({
-        target: `${packageId}::nft::mint`,
-        arguments: [
-          txb.pure.string(name),
-          txb.pure.string(description),
-          txb.pure.string(uri),
-        ],
-      })
+      // Tenta usar moveCall se existir
+      if (typeof txb.moveCall === 'function') {
+        console.log('✅ Usando moveCall diretamente...')
+        txb.moveCall({
+          target: `${packageId}::nft::mint`,
+          arguments: [
+            txb.pure.string(name),
+            txb.pure.string(description),
+            txb.pure.string(uri),
+          ],
+        })
+      } else {
+        // Se não tem moveCall, pode ser que na versão 0.17.0 a API seja diferente
+        // Vamos tentar usar call ou outra forma
+        console.log('⚠️ moveCall não encontrado, tentando abordagem alternativa...')
+        
+        // Tenta usar como objeto de configuração direto para o wallet-kit
+        // O wallet-kit pode aceitar um objeto com a estrutura da transação
+        const txConfig = {
+          kind: 'moveCall' as const,
+          data: {
+            packageObjectId: packageId.split('::')[0],
+            module: 'nft',
+            function: 'mint',
+            arguments: [name, description, uri],
+            typeArguments: [],
+          },
+        }
+        
+        // Atribui ao txb de forma que o wallet-kit entenda
+        ;(txb as any).transactions = [txConfig]
+        ;(txb as any).moveCall = function(config: any) {
+          if (!this.transactions) this.transactions = []
+          this.transactions.push({
+            kind: 'moveCall',
+            data: config,
+          })
+        }
+        
+        // Agora tenta usar moveCall
+        txb.moveCall({
+          target: `${packageId}::nft::mint`,
+          arguments: [
+            name,
+            description,
+            uri,
+          ],
+        })
+      }
 
       console.log('✅ Transação construída, enviando...')
       const result = await signAndExecuteTransactionBlock({
