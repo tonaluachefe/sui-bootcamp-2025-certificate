@@ -1,8 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { WalletKitProvider, useWalletKit, ConnectButton } from '@mysten/wallet-kit'
 // @ts-ignore - imports da versão 0.17.0
-import { TransactionBlock, getFullnodeUrl } from '@mysten/sui.js'
+import * as sui from '@mysten/sui.js'
 import './App.css'
+
+// Acessa TransactionBlock e getFullnodeUrl do módulo
+// @ts-ignore
+const TransactionBlock = sui.TransactionBlock
+// @ts-ignore
+const getFullnodeUrl = sui.getFullnodeUrl
 
 // Package IDs dos contratos
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
