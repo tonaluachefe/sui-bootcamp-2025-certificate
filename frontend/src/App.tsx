@@ -6,9 +6,19 @@ import './App.css'
 
 // Acessa TransactionBlock e getFullnodeUrl do módulo
 // @ts-ignore
-const TransactionBlock = sui.TransactionBlock
+const TransactionBlock = sui.TransactionBlock || (sui as any).default?.TransactionBlock
 // @ts-ignore
-const getFullnodeUrl = sui.getFullnodeUrl
+const getFullnodeUrl = sui.getFullnodeUrl || (sui as any).default?.getFullnodeUrl
+
+// Validação para garantir que existem
+if (!TransactionBlock) {
+  console.error('TransactionBlock não encontrado em @mysten/sui.js')
+  console.log('Objeto sui:', Object.keys(sui))
+}
+
+if (!getFullnodeUrl) {
+  console.error('getFullnodeUrl não encontrado em @mysten/sui.js')
+}
 
 // Package IDs dos contratos
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
@@ -388,8 +398,9 @@ function AppContent() {
 }
 
 function App() {
-  const mainnetUrl = getFullnodeUrl('mainnet')
-  const testnetUrl = getFullnodeUrl('testnet')
+  // Fallback URLs caso getFullnodeUrl não funcione
+  const mainnetUrl = getFullnodeUrl ? getFullnodeUrl('mainnet') : 'https://fullnode.mainnet.sui.io:443'
+  const testnetUrl = getFullnodeUrl ? getFullnodeUrl('testnet') : 'https://fullnode.testnet.sui.io:443'
   
   return (
     <WalletKitProvider 
