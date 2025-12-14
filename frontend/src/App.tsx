@@ -270,12 +270,33 @@ function AppContent() {
         throw new Error('TransactionBlock não está disponível. Por favor, recarregue a página ou verifique o console para mais detalhes.')
       }
 
-      const txb = new TransactionBlock()
+      console.log('✅ TransactionBlock encontrado, criando instância...')
+      let txb: any
       
-      if (!txb || typeof txb.moveCall !== 'function') {
-        throw new Error('TransactionBlock não foi criado corretamente')
+      try {
+        txb = new TransactionBlock()
+        console.log('✅ Instância criada:', txb)
+        console.log('🔍 Métodos disponíveis:', Object.keys(txb))
+      } catch (error) {
+        console.error('❌ Erro ao criar TransactionBlock:', error)
+        throw new Error(`Erro ao criar TransactionBlock: ${error}`)
       }
       
+      // Verifica se tem os métodos necessários
+      if (!txb) {
+        throw new Error('TransactionBlock é null ou undefined após criação')
+      }
+
+      if (typeof txb.moveCall !== 'function') {
+        console.error('❌ txb.moveCall não é uma função')
+        console.log('📋 txb tem:', Object.keys(txb))
+        // Tenta métodos alternativos
+        if (typeof txb.setData !== 'function' && typeof txb.move !== 'function') {
+          throw new Error(`TransactionBlock criado mas não tem método moveCall. Métodos disponíveis: ${Object.keys(txb).join(', ')}`)
+        }
+      }
+      
+      console.log('✅ Usando moveCall...')
       // Usa a API correta do TransactionBlock para versão 0.17.0
       txb.moveCall({
         target: `${packageId}::nft::mint`,
@@ -286,9 +307,12 @@ function AppContent() {
         ],
       })
 
+      console.log('✅ Transação construída, enviando...')
       const result = await signAndExecuteTransactionBlock({
         transactionBlock: txb,
       })
+      
+      console.log('✅ Transação enviada:', result)
 
       setTxDigest(result.digest)
       alert(t.mintSuccess)
