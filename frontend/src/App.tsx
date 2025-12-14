@@ -7,7 +7,7 @@ import './App.css'
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
 
 function AppContent() {
-  const { currentAccount, connect, disconnect, signAndExecuteTransactionBlock } = useWalletKit()
+  const { currentAccount, connect, disconnect, signAndExecuteTransactionBlock, isConnected } = useWalletKit()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [uri, setUri] = useState('')
@@ -18,14 +18,15 @@ function AppContent() {
   const [txDigest, setTxDigest] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleConnect = () => {
-    // Wallet Kit will automatically show a modal to select wallet
-    // @ts-ignore - connect can be called without args in wallet-kit
+  const handleConnect = async () => {
     try {
-      connect()
-    } catch (error) {
+      // Wallet Kit will automatically show a modal to select wallet
+      // @ts-ignore - connect can be called without args in wallet-kit
+      const result = await connect()
+      console.log('Connect result:', result)
+    } catch (error: any) {
       console.error('Failed to connect wallet:', error)
-      alert('Erro ao conectar wallet. Certifique-se de que uma wallet está instalada.')
+      alert(`Erro ao conectar wallet: ${error?.message || 'Certifique-se de que uma wallet está instalada.'}`)
     }
   }
 
