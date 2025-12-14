@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { WalletKitProvider, useWalletKit, ConnectButton } from '@mysten/wallet-kit'
-import { TransactionBlock, getFullnodeUrl } from './sui-helper'
+// @ts-ignore - imports da versão 0.17.0
+import { TransactionBlock, getFullnodeUrl } from '@mysten/sui.js'
 import './App.css'
 
 // Package IDs dos contratos
