@@ -240,15 +240,17 @@ function AppContent() {
 }
 
 function App() {
+  const mainnetUrl = getFullnodeUrl('mainnet')
+  
   return (
     <WalletKitProvider 
-      networks={[
-        {
-          name: 'mainnet',
-          url: getFullnodeUrl('mainnet')
+      networks={{
+        mainnet: {
+          url: mainnetUrl
         }
-      ]}
+      }}
       defaultNetwork="mainnet"
+      enableUnsafeBurner={false}
     >
       <AppContent />
     </WalletKitProvider>
