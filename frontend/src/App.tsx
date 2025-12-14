@@ -5,20 +5,43 @@ import * as sui from '@mysten/sui.js'
 import './App.css'
 
 // Acessa TransactionBlock e getFullnodeUrl do módulo
+// Na versão 0.17.0, TransactionBlock pode estar em diferentes lugares
 // @ts-ignore
-const TransactionBlock = sui.TransactionBlock || (sui as any).default?.TransactionBlock
+let TransactionBlock: any = null
 // @ts-ignore
-const getFullnodeUrl = sui.getFullnodeUrl || (sui as any).default?.getFullnodeUrl
+let getFullnodeUrlFn: any = null
 
-// Validação para garantir que existem
+// Tenta diferentes formas de acessar
+if (sui.TransactionBlock) {
+  TransactionBlock = sui.TransactionBlock
+} else if ((sui as any).default?.TransactionBlock) {
+  TransactionBlock = (sui as any).default.TransactionBlock
+} else if (typeof (sui as any).Transaction === 'function') {
+  // Algumas versões usam Transaction
+  TransactionBlock = (sui as any).Transaction
+}
+
+if (sui.getFullnodeUrl) {
+  getFullnodeUrlFn = sui.getFullnodeUrl
+} else if ((sui as any).default?.getFullnodeUrl) {
+  getFullnodeUrlFn = (sui as any).default.getFullnodeUrl
+}
+
+// Log para debug
 if (!TransactionBlock) {
   console.error('TransactionBlock não encontrado em @mysten/sui.js')
-  console.log('Objeto sui:', Object.keys(sui))
+  console.log('Chaves disponíveis:', Object.keys(sui).slice(0, 20))
+  console.log('Módulo sui:', sui)
 }
 
-if (!getFullnodeUrl) {
+if (!getFullnodeUrlFn) {
   console.error('getFullnodeUrl não encontrado em @mysten/sui.js')
 }
+
+const getFullnodeUrl = getFullnodeUrlFn || ((network: string) => {
+  if (network === 'mainnet') return 'https://fullnode.mainnet.sui.io:443'
+  return 'https://fullnode.testnet.sui.io:443'
+})
 
 // Package IDs dos contratos
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
