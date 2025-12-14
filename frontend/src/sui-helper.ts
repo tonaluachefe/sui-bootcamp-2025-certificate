@@ -1,10 +1,7 @@
 // Helper para importar TransactionBlock de forma compatível com Vite e versão 0.17.0
-// @ts-ignore - imports da versão 0.17.0
-import * as sui from '@mysten/sui.js'
-
-// Acessa TransactionBlock do objeto principal
+// Importação dinâmica para garantir compatibilidade
 // @ts-ignore
-export const TransactionBlock = sui.TransactionBlock || (sui as any).default?.TransactionBlock
+import { TransactionBlock as SuiTransactionBlock, getFullnodeUrl as SuiGetFullnodeUrl } from '@mysten/sui.js'
 
-// @ts-ignore
-export const getFullnodeUrl = sui.getFullnodeUrl || (sui as any).default?.getFullnodeUrl
+// Exporta diretamente
+export { SuiTransactionBlock as TransactionBlock, SuiGetFullnodeUrl as getFullnodeUrl }
