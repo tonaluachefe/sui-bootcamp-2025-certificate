@@ -236,7 +236,17 @@ function AppContent() {
     setTxDigest(null)
 
     try {
+      if (!TransactionBlock || typeof TransactionBlock !== 'function') {
+        console.error('TransactionBlock não disponível:', TransactionBlock)
+        console.log('Verificando módulo sui:', Object.keys(sui))
+        throw new Error('TransactionBlock não está disponível. Por favor, recarregue a página ou verifique o console para mais detalhes.')
+      }
+
       const txb = new TransactionBlock()
+      
+      if (!txb || typeof txb.moveCall !== 'function') {
+        throw new Error('TransactionBlock não foi criado corretamente')
+      }
       
       // Usa a API correta do TransactionBlock para versão 0.17.0
       txb.moveCall({
