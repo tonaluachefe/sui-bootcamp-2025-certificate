@@ -198,6 +198,7 @@ function AppContent() {
     try {
       const txb = new TransactionBlock()
       
+      // Usa a API correta do TransactionBlock para versão 0.17.0
       txb.moveCall({
         target: `${packageId}::nft::mint`,
         arguments: [
