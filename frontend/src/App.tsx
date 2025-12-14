@@ -81,7 +81,7 @@ type Language = 'pt' | 'en'
 type Network = 'mainnet' | 'testnet'
 
 function AppContent() {
-  const { currentAccount, connect, disconnect, signAndExecuteTransactionBlock, isConnected } = useWalletKit()
+  const { currentAccount, connect, disconnect, signAndExecuteTransactionBlock, isConnected, wallets } = useWalletKit()
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('nft-dapp-language')
     return (saved as Language) || 'pt'
@@ -113,13 +113,32 @@ function AppContent() {
 
   const handleConnect = async () => {
     try {
-      // Wallet Kit will automatically show a modal to select wallet
-      // @ts-ignore - connect can be called without args in wallet-kit
-      const result = await connect()
-      console.log('Connect result:', result)
+      // Tenta conectar com a primeira wallet disponível (Suiet ou Sui Wallet)
+      const availableWallets = wallets.filter(w => w.installed)
+      
+      if (availableWallets.length === 0) {
+        alert(t.pleaseConnect + ' - Nenhuma wallet instalada. Por favor, instale Suiet ou Sui Wallet.')
+        return
+      }
+
+      // Se houver apenas uma wallet, conecta diretamente
+      if (availableWallets.length === 1) {
+        await connect(availableWallets[0].name)
+        return
+      }
+
+      // Se houver múltiplas wallets, tenta usar a função connect() sem parâmetros
+      // que deve abrir o modal de seleção
+      // @ts-ignore - connect pode não ter tipagem completa
+      if (typeof connect === 'function') {
+        await connect()
+      } else {
+        // Fallback: conecta com a primeira disponível
+        await connect(availableWallets[0].name)
+      }
     } catch (error: any) {
       console.error('Failed to connect wallet:', error)
-      alert(`Erro ao conectar wallet: ${error?.message || 'Certifique-se de que uma wallet está instalada.'}`)
+      alert(`${t.pleaseConnect}: ${error?.message || 'Erro desconhecido'}`)
     }
   }
 
