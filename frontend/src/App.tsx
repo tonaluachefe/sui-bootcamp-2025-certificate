@@ -27,11 +27,39 @@ if (sui.getFullnodeUrl) {
   getFullnodeUrlFn = (sui as any).default.getFullnodeUrl
 }
 
-// Log para debug
+// Log para debug - busca mais agressiva
+const suiKeys = Object.keys(sui)
+console.log('🔍 Total de chaves em @mysten/sui.js:', suiKeys.length)
+console.log('📋 Primeiras 30 chaves:', suiKeys.slice(0, 30))
+
 if (!TransactionBlock) {
-  console.error('TransactionBlock não encontrado em @mysten/sui.js')
-  console.log('Chaves disponíveis:', Object.keys(sui).slice(0, 20))
-  console.log('Módulo sui:', sui)
+  console.error('❌ TransactionBlock não encontrado nas formas padrão')
+  // Busca por qualquer coisa relacionada a transaction
+  const transactionKeys = suiKeys.filter(k => 
+    k.toLowerCase().includes('transaction') || 
+    k.toLowerCase().includes('tx') ||
+    k.toLowerCase().includes('block')
+  )
+  console.log('🔎 Chaves relacionadas a transaction/tx/block:', transactionKeys)
+  
+  // Tenta acessar cada uma
+  for (const key of transactionKeys) {
+    const value = (sui as any)[key]
+    console.log(`  - ${key}:`, typeof value, value)
+    if (typeof value === 'function' || (typeof value === 'object' && value !== null)) {
+      // Tenta ver se tem construtor
+      if (value.prototype || (typeof value === 'function' && value.length >= 0)) {
+        console.log(`    ⚠️  Tentando usar ${key} como TransactionBlock`)
+        TransactionBlock = value
+        break
+      }
+    }
+  }
+}
+
+if (!TransactionBlock) {
+  console.error('❌ TransactionBlock ainda não encontrado após busca agressiva')
+  console.log('🔍 Objeto sui completo:', sui)
 }
 
 if (!getFullnodeUrlFn) {
