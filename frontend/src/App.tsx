@@ -82,6 +82,14 @@ type Network = 'mainnet' | 'testnet'
 
 function AppContent() {
   const { currentAccount, connect, disconnect, signAndExecuteTransactionBlock, isConnected } = useWalletKit()
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('nft-dapp-language')
+    return (saved as Language) || 'pt'
+  })
+  const [network, setNetwork] = useState<Network>(() => {
+    const saved = localStorage.getItem('nft-dapp-network')
+    return (saved as Network) || 'mainnet'
+  })
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [uri, setUri] = useState('')
@@ -91,6 +99,17 @@ function AppContent() {
   const [loading, setLoading] = useState(false)
   const [txDigest, setTxDigest] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const t = translations[language]
+  const packageId = network === 'mainnet' ? MAINNET_PACKAGE_ID : TESTNET_PACKAGE_ID
+
+  useEffect(() => {
+    localStorage.setItem('nft-dapp-language', language)
+  }, [language])
+
+  useEffect(() => {
+    localStorage.setItem('nft-dapp-network', network)
+  }, [network])
 
   const handleConnect = async () => {
     try {
@@ -112,7 +131,7 @@ function AppContent() {
   const handleImageUpload = async (file: File) => {
     // Validar tamanho (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Imagem muito grande! Por favor, use uma imagem menor que 5MB.')
+      alert(t.imageTooBig)
       return
     }
 
