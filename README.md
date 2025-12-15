@@ -1,206 +1,86 @@
-# Sui NFT Dapp - Projeto Final Bootcamp
+# Sui NFT Dapp – Final Bootcamp Project (Single Doc)
 
-Um Dapp simples para mintar NFTs na blockchain Sui, utilizando Smart Contracts em Move e um frontend React com TypeScript, a ideia era algo mais complexo mas quero tentar nao errar muito de primeira, após criar a primeira Wallet, no caso a minha para esse projeto (0x963408595b26c34f7703936ce38da152996134041ac23ddac04b28b9c2cd5c64), partimos para ver um exemplo de README e iniciarmos a monstagem da estrutura, de como e o que estou tentando fazer, o desenvolvimento, aproveito para deixar de histórico para futuras consultas do que foi feito e utilizado.
+Functional NFT Dapp on Sui: wallet connect (Sui/Martian/Ethos via @mysten/wallet-kit), mint NFTs with `tx_context::sender` as owner, React + Vite frontend. This README centralizes all required info (dev, deploy, and form answers).
 
-## 🚀 Tecnologias Utilizadas
+## Repository
+`https://github.com/tonaluachefe/sui-bootcamp-2025-certificate`
 
-- **Smart Contract**: Move (Sui Framework)
-- **Frontend**: React 18 + TypeScript + Vite
-- **Wallet Integration**: @mysten/wallet-kit (suporta Sui Wallet, Martian Wallet, Ethos Wallet)
-- **Network**: Sui Testnet (ou Mainnet após deploy)
+## Contract Deploys
+- Mainnet
+  - Package ID: `0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89`
+  - Transaction Digest: `FpXA5F8exnpEhp3v5PmErcxvuxLGu85LnxFrCYLPGSRz`
+  - Explorer: https://suiexplorer.com/object/0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89?network=mainnet
+  - Tx: https://suiexplorer.com/txblock/FpXA5F8exnpEhp3v5PmErcxvuxLGu85LnxFrCYLPGSRz?network=mainnet
+- Testnet
+  - Package ID: `0x5292e8182c0b8904362a8b48e166330cc20bfd5043c1ea4b5b4c3d2975eae40b`
+  - Transaction Digest: `8WhwdMU2Eb3qmrqH967HGbtUDW3PMif1E4e4nYZddsbC`
+  - Explorer: https://suiexplorer.com/object/0x5292e8182c0b8904362a8b48e166330cc20bfd5043c1ea4b5b4c3d2975eae40b?network=testnet
+- Deployer wallet: `0x963408595b26c34f7703936ce38da152996134041ac23ddac04b28b9c2cd5c64`
 
-## 📋 Pré-requisitos
+## Stack
+- Move (Sui Framework), Sui CLI, @mysten/sui.js, @mysten/wallet-kit
+- React 18, TypeScript, Vite
 
-1. **Sui CLI** instalado
-   ```bash
-   cargo install --locked --git https://github.com/MystenLabs/sui.git --branch devnet sui
-   ```
-   - Base que utilizei nesta etapa para download e primeiros comandos (https://github.com/gustavo-f0ntz/sui-first-steps)
-   - Base que utilizei nesta etapa para comandos, principalmente por eu ter vazado minha seed na primeira tentativa e tive de gerar outras (https://github.com/gustavo-f0ntz/SUI-Comandos--Essenciais/blob/main/docs/comandos-completos.md)
-
-3. **Node.js** (v18 ou superior) e npm/yarn
-
-4. **Wallet instalada** (uma das opções):
-   - [Sui Wallet](https://chromewebstore.google.com/detail/slush-%E2%80%94-a-sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil)
-   - [Martian Wallet](https://www.martianwallet.xyz/)
-   - [Ethos Wallet](https://ethoswallet.xyz/)
-
-5. **VS Code** instalado
- ```bash
-   cargo install --locked --git https://github.com/MystenLabs/sui.git --branch devnet sui
-   ```
-  - Base que utilizei (https://github.com/AguaPotavel/sui-first-steps/?tab=readme-ov-file#windowscli)
-  
-## 🔧 Instalação
-
-### 1. Clone o repositório
-
-```bash
-git clone <seu-repositorio>
-cd Bootcamp\ 2025
-```
-
-### 2. Instale as dependências do frontend
-
+## Run Locally
 ```bash
 cd frontend
 npm install
+npm run dev
+# open the shown localhost URL (usually http://localhost:5173)
 ```
 
-## 📦 Deploy do Smart Contract
-
-### 1. Configure o Sui CLI
-
-Se ainda não tiver uma wallet configurada:
-
-```bash
-sui client new-address ed25519
-```
-
-Isso criará um novo endereço. **IMPORTANTE**: Guarde a seed phrase em local seguro!
-
-### 2. Obtenha fundos para teste (Testnet)
-
-Obtenha tokens de teste em: https://faucet.sui.io/
-
-Ou use o faucet:
-```bash
-sui client faucet
-```
-
-### 3. Deploy do contrato
-
-```bash
-cd sui_nft
-sui client publish --gas-budget 100000000
-```
-
-**⚠️ Você precisará assinar a transação de deploy com sua wallet.
-
-O comando retornará informações importantes:
-- **packageId**: Use este ID no frontend (formato: `0x...`)
-- **transactionDigest**: Hash da transação
-
-Exemplo de output:
-```
-Published Objects:
-  - ID: 0x... <-- Este é o packageId que você precisa
-```
-
-Copie o **packageId** - você precisará dele no frontend!
-
-## 🎨 Como Usar o Frontend
-
-### 1. Inicie o servidor de desenvolvimento
-
+## Build (used by Vercel)
 ```bash
 cd frontend
-npm run dev
+npm run build
 ```
+Output directory: `frontend/dist`
 
-O app estará disponível em `http://localhost:5173`
+## Vercel Deploy (manual steps)
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+- After deploy: open the Vercel URL, connect wallet, mint.
 
-### 2. Conectar a Wallet
+## Frontend Usage
+1) Connect wallet (Sui/Martian/Ethos) via ConnectButton.  
+2) Choose network (mainnet/testnet selector).  
+3) Fill NFT Name, Description, Image URL (prefer HTTPS/IPFS; avoid base64 >16KB).  
+4) Click Mint and sign the transaction in the wallet.  
+5) The digest and explorer link are shown after success.
 
-1. Clique no botão **"Conectar Wallet"**
-2. Selecione sua wallet instalada (Sui Wallet, Martian ou Ethos)
-3. **AÇÃO MANUAL**: Aprove a conexão na extensão da wallet
-4. O endereço da sua wallet aparecerá na tela
+## Smart Contract (sui_nft::nft)
+- `mint(name: vector<u8>, description: vector<u8>, uri: vector<u8>, ctx: &mut TxContext)`  
+  - Owner = `tx_context::sender(ctx)`  
+  - Transfers NFT to sender and emits `NFTMinted` event (id, owner, name).
 
-### 3. Mintar um NFT
+## Form Answers (ready to copy, English)
+- Repository Link (public): `https://github.com/tonaluachefe/sui-bootcamp-2025-certificate`
+- Short Project Description: Simple NFT Dapp on Sui: users connect a wallet and mint NFTs with basic metadata. Built for the Sui Bootcamp final project.
+- Detailed Project Description: A lightweight NFT Dapp on the Sui blockchain. The Move contract mints an NFT using tx_context::sender as owner and emits an NFTMinted event. The React + Vite frontend integrates @mysten/wallet-kit so users can connect Sui-compatible wallets and mint NFTs by providing name, description, and image URI. The app includes network selector (mainnet/testnet) and uses the deployed package ID.
+- Technologies Used: Move (Sui Framework), Sui CLI, @mysten/sui.js, @mysten/wallet-kit, React 18, TypeScript, Vite.
+- Network Used: Sui Mainnet (testnet package also available if needed).
+- Package ID (Mainnet): `0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89`
+- Transaction Digest (Mainnet deploy): `FpXA5F8exnpEhp3v5PmErcxvuxLGu85LnxFrCYLPGSRz`
+- Wallet Address (Deployer): `0x963408595b26c34f7703936ce38da152996134041ac23ddac04b28b9c2cd5c64`
+- Explorer Links: Package https://suiexplorer.com/object/0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89?network=mainnet | Tx https://suiexplorer.com/txblock/FpXA5F8exnpEhp3v5PmErcxvuxLGu85LnxFrCYLPGSRz?network=mainnet
+- Project Goal: Deliver a functional NFT minting Dapp for the Sui Bootcamp: connect wallet, call Move mint with tx_context::sender, provide clear UX with language/network selectors and docs.
+- What I Learned: Writing/deploying Move contracts on Sui; integrating @mysten/wallet-kit in React/TS to sign transactions; building and deploying end-to-end Dapp (network selector mainnet/testnet) and handling @mysten/sui.js export quirks.
 
-1. **Cole o Package ID** do contrato deployado no campo "Package ID"
-2. Preencha os campos:
-   - **Nome do NFT**: Nome único do seu NFT
-   - **Descrição**: Descrição do NFT
-   - **URI**: Link para a imagem/metadata do NFT (ex: IPFS, HTTPS)
-3. Clique em **"Mintar NFT"**
-4. **AÇÃO MANUAL**: Aprove a transação na sua wallet
-5. Aguarde a confirmação
-6. O hash da transação aparecerá com link para o Sui Explorer
+## Checklist (form fields)
+- [x] Repository link
+- [x] Short description
+- [x] Detailed description
+- [x] Technologies
+- [x] Network
+- [x] Package ID
+- [x] Transaction digest
+- [x] Wallet address (deployer)
+- [x] Project goal
+- [x] Learnings
+- [x] Explorer links (helpful if field/notes)
 
-## 📝 Como o Contrato Funciona
-
-O contrato Move (`sui_nft::nft`) possui uma função `mint` que:
-
-1. Recebe `name`, `description` e `uri` como parâmetros
-2. Usa `tx_context::sender()` para identificar o owner do NFT
-3. Cria um novo objeto NFT com `key` e `store` abilities
-4. Transfere o NFT para o endereço do sender (owner)
-5. Emite um evento `NFTMinted` com as informações do NFT
-
-**Importante**: O NFT é automaticamente atribuído ao endereço que assina a transação (sender), garantindo que apenas o dono da wallet seja o owner do NFT.
-
-## 📊 Informações para o Formulário do Bootcamp
-
-### Link do Repositório
-```
-REPOSITÓRIO GIT (https://github.com/tonaluachefe/sui-bootcamp-2025-certificate)
-```
-
-### Descrição do Projeto
-```
-Dapp NFT desenvolvido em Sui que permite aos usuários mintarem NFTs personalizados. 
-O projeto utiliza Smart Contracts em Move para garantir a propriedade e transferência 
-segura dos NFTs, e um frontend React com integração de wallet para uma experiência 
-de usuário intuitiva. O sistema utiliza tx_context::sender() para garantir que apenas 
-o assinante da transação seja o owner do NFT mintado.
-```
-
-### Tecnologias Usadas
-```
-- Move (Sui Framework) - Smart Contracts
-- React 18 - Frontend Framework
-- TypeScript - Linguagem de programação
-- Vite - Build tool
-- No geral acho que foi isso Move, Sui CLI, Sui SDK, React, Vite
-
-```
-
-### Network Utilizada
-```
-Sui Testnet (ou Sui Mainnet se você fizer deploy na mainnet)
-```
-
-### Package ID do Contrato
-```
-0x5292e8182c0b8904362a8b48e166330cc20bfd5043c1ea4b5b4c3d2975eae40b
-```
-Você obtém isso executando: `sui client publish --gas-budget 100000000`
-
-## 🐛 Troubleshooting
-
-### Erro ao conectar wallet
-- Certifique-se de que a extensão da wallet está instalada e ativa
-- Recarregue a página após instalar a extensão
-
-### Erro ao mintar NFT
-- Verifique se o Package ID está correto
-- Certifique-se de ter SUI suficiente para gas
-- Verifique se os campos estão preenchidos
-
-### Erro de compilação do contrato
-- Verifique se o Sui CLI está atualizado: `sui --version`
-- Certifique-se de estar na versão correta do framework no `Move.toml`
-
-## 📚 Recursos Úteis
-
-- [Documentação Sui](https://docs.sui.io/)
-- [Sui Explorer](https://suiexplorer.com/)
-- [Move Book](https://move-language.github.io/move/)
-- [Sui Wallet](https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil)
-
-## 👨‍💻 Desenvolvido para o Sui Bootcamp 2025
-
-Este projeto foi desenvolvido como projeto final do Sui Bootcamp, demonstrando:
-- Criação de Smart Contracts em Move
-- Integração de wallets Sui
-- Desenvolvimento de Dapps com React
-- Uso correto de tx_context::sender() para ownership
-
-
-
-
-
-
-
+## Notes / Troubleshooting
+- Pure args on Sui have ~16KB limit: prefer image URLs (https/ipfs). Base64 URIs >16KB are rejected. 
+- If wallet connect fails, ensure the extension is installed and reload. 
+- If mint fails, verify network selector matches the package ID and you have SUI for gas. 
