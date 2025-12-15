@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { WalletKitProvider, useWalletKit, ConnectButton } from '@mysten/wallet-kit'
 // @ts-ignore - tipos da lib podem não estar 100% alinhados com o bundler
 import { TransactionBlock } from '@mysten/sui.js/transactions'
@@ -9,6 +9,9 @@ import './App.css'
 // Package IDs dos contratos
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
 const TESTNET_PACKAGE_ID = '0x5292e8182c0b8904362a8b48e166330cc20bfd5043c1ea4b5b4c3d2975eae40b'
+
+// Limite de pure argument do Sui: 16 KB
+const MAX_PURE_ARGUMENT = 16_384
 
 // Traduções
 const translations = {
@@ -96,12 +99,8 @@ function AppContent() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [uri, setUri] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>('')
-  const [uploadingImage, setUploadingImage] = useState(false)
   const [loading, setLoading] = useState(false)
   const [txDigest, setTxDigest] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const t = translations[language]
   const packageId = network === 'mainnet' ? MAINNET_PACKAGE_ID : TESTNET_PACKAGE_ID
@@ -117,7 +116,8 @@ function AppContent() {
   const handleConnect = async () => {
     try {
       // Tenta conectar com a primeira wallet disponível (Suiet ou Sui Wallet)
-      const availableWallets = wallets.filter(w => w.installed)
+      // @ts-ignore - tipagem do wallet-kit não inclui "installed" em todas as versões
+      const availableWallets = wallets.filter((w: any) => w.installed)
       
       if (availableWallets.length === 0) {
         alert(t.pleaseConnect + ' - Nenhuma wallet instalada. Por favor, instale Suiet ou Sui Wallet.')
@@ -130,14 +130,12 @@ function AppContent() {
         return
       }
 
-      // Se houver múltiplas wallets, tenta usar a função connect() sem parâmetros
-      // que deve abrir o modal de seleção
-      // @ts-ignore - connect pode não ter tipagem completa
-      if (typeof connect === 'function') {
-        await connect()
+      // Se houver múltiplas wallets, tenta abrir o modal (algumas versões aceitam connect() sem args)
+      const connectFn: any = connect as any
+      if (typeof connectFn === 'function') {
+        await connectFn()
       } else {
-        // Fallback: conecta com a primeira disponível
-        await connect(availableWallets[0].name)
+        await connectFn(availableWallets[0].name)
       }
     } catch (error: any) {
       console.error('Failed to connect wallet:', error)
@@ -150,40 +148,6 @@ function AppContent() {
     setTxDigest(null)
   }
 
-  const handleImageUpload = async (file: File) => {
-    // Validar tamanho (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(t.imageTooBig)
-      return
-    }
-
-    setUploadingImage(true)
-    
-    try {
-      // Criar preview
-      const preview = URL.createObjectURL(file)
-      setImagePreview(preview)
-      setImageFile(file)
-      
-      // Converter para base64 para usar como URI
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64String = reader.result as string
-        setUri(base64String)
-        setUploadingImage(false)
-      }
-      reader.onerror = () => {
-        alert('Erro ao processar imagem')
-        setUploadingImage(false)
-      }
-      reader.readAsDataURL(file)
-    } catch (error) {
-      console.error('Error reading file:', error)
-      alert('Erro ao processar imagem')
-      setUploadingImage(false)
-    }
-  }
-
   const handleMint = async () => {
     if (!currentAccount) {
       alert(t.pleaseConnect)
@@ -192,6 +156,12 @@ function AppContent() {
 
     if (!name || !description || !uri) {
       alert(t.fillAllFields)
+      return
+    }
+
+    // Bloqueia URIs grandes demais (limite de 16KB para pure args)
+    if (uri.startsWith('data:') && uri.length > MAX_PURE_ARGUMENT) {
+      alert('A URI está maior que 16KB. Use uma URL (https/ipfs) ou uma imagem menor.')
       return
     }
 
@@ -223,8 +193,6 @@ function AppContent() {
       setName('')
       setDescription('')
       setUri('')
-      setImagePreview('')
-      setImageFile(null)
     } catch (error: any) {
       console.error('Failed to mint NFT:', error)
       alert(`${t.mintError}: ${error.message || 'Erro desconhecido'}`)
@@ -267,9 +235,8 @@ function AppContent() {
         {!currentAccount ? (
           <div>
             <p>{t.connectWallet}</p>
+            {/* @ts-ignore - className não está tipado em algumas versões */}
             <ConnectButton className="connect-button" />
-            {/* Botão customizado como fallback */}
-            <button onClick={handleConnect} style={{ marginTop: '1rem' }}>{t.connectButton}</button>
           </div>
         ) : (
           <div>
@@ -285,47 +252,6 @@ function AppContent() {
           <h2>{t.mintNFT}</h2>
           <p className="network-badge">🌐 {network === 'mainnet' ? t.mainnet : t.testnet}</p>
           
-          <div className="input-group">
-            <label>{t.imageNFT}</label>
-            <div className="image-upload-section">
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) handleImageUpload(file)
-                }}
-                style={{ display: 'none' }}
-              />
-              <button 
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="upload-button"
-                disabled={uploadingImage}
-              >
-                {uploadingImage ? t.loading : imagePreview ? t.changeImage : t.chooseImage}
-              </button>
-              {imagePreview && (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setImagePreview('')
-                      setImageFile(null)
-                      setUri('')
-                    }}
-                    className="remove-image"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-            </div>
-            <p className="hint">{t.orPasteUrl}</p>
-          </div>
-
           <div className="input-group">
             <label>{t.imageUrl}</label>
             <input
@@ -359,7 +285,7 @@ function AppContent() {
 
           <button 
             onClick={handleMint} 
-            disabled={loading || uploadingImage || !name || !description || !uri}
+            disabled={loading || !name || !description || !uri}
             className="mint-button"
           >
             {loading ? `${t.minting} ${network === 'mainnet' ? t.mainnet : t.testnet}...` : t.mintButton}
@@ -385,12 +311,13 @@ function AppContent() {
 }
 
 function App() {
+  const Provider: any = WalletKitProvider as any
   // URLs oficiais usando helper da lib
   const mainnetUrl = getFullnodeUrl('mainnet')
   const testnetUrl = getFullnodeUrl('testnet')
   
   return (
-    <WalletKitProvider 
+    <Provider 
       networks={{
         mainnet: {
           url: mainnetUrl
@@ -403,7 +330,7 @@ function App() {
       enableUnsafeBurner={false}
     >
       <AppContent />
-    </WalletKitProvider>
+    </Provider>
   )
 }
 
