@@ -1,75 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { WalletKitProvider, useWalletKit, ConnectButton } from '@mysten/wallet-kit'
-// @ts-ignore - imports da versão 0.17.0
-import * as sui from '@mysten/sui.js'
+// @ts-ignore - tipos da lib podem não estar 100% alinhados com o bundler
+import { TransactionBlock } from '@mysten/sui.js/transactions'
+// @ts-ignore - mesma observação acima
+import { getFullnodeUrl } from '@mysten/sui.js/client'
 import './App.css'
-
-// Acessa TransactionBlock e getFullnodeUrl do módulo
-// Na versão 0.17.0, TransactionBlock pode estar em diferentes lugares
-// @ts-ignore
-let TransactionBlock: any = null
-// @ts-ignore
-let getFullnodeUrlFn: any = null
-
-// Tenta diferentes formas de acessar
-if (sui.TransactionBlock) {
-  TransactionBlock = sui.TransactionBlock
-} else if ((sui as any).default?.TransactionBlock) {
-  TransactionBlock = (sui as any).default.TransactionBlock
-} else if (typeof (sui as any).Transaction === 'function') {
-  // Algumas versões usam Transaction
-  TransactionBlock = (sui as any).Transaction
-}
-
-if (sui.getFullnodeUrl) {
-  getFullnodeUrlFn = sui.getFullnodeUrl
-} else if ((sui as any).default?.getFullnodeUrl) {
-  getFullnodeUrlFn = (sui as any).default.getFullnodeUrl
-}
-
-// Log para debug - busca mais agressiva
-const suiKeys = Object.keys(sui)
-console.log('🔍 Total de chaves em @mysten/sui.js:', suiKeys.length)
-console.log('📋 Primeiras 30 chaves:', suiKeys.slice(0, 30))
-
-if (!TransactionBlock) {
-  console.error('❌ TransactionBlock não encontrado nas formas padrão')
-  // Busca por qualquer coisa relacionada a transaction
-  const transactionKeys = suiKeys.filter(k => 
-    k.toLowerCase().includes('transaction') || 
-    k.toLowerCase().includes('tx') ||
-    k.toLowerCase().includes('block')
-  )
-  console.log('🔎 Chaves relacionadas a transaction/tx/block:', transactionKeys)
-  
-  // Tenta acessar cada uma
-  for (const key of transactionKeys) {
-    const value = (sui as any)[key]
-    console.log(`  - ${key}:`, typeof value, value)
-    if (typeof value === 'function' || (typeof value === 'object' && value !== null)) {
-      // Tenta ver se tem construtor
-      if (value.prototype || (typeof value === 'function' && value.length >= 0)) {
-        console.log(`    ⚠️  Tentando usar ${key} como TransactionBlock`)
-        TransactionBlock = value
-        break
-      }
-    }
-  }
-}
-
-if (!TransactionBlock) {
-  console.error('❌ TransactionBlock ainda não encontrado após busca agressiva')
-  console.log('🔍 Objeto sui completo:', sui)
-}
-
-if (!getFullnodeUrlFn) {
-  console.error('getFullnodeUrl não encontrado em @mysten/sui.js')
-}
-
-const getFullnodeUrl = getFullnodeUrlFn || ((network: string) => {
-  if (network === 'mainnet') return 'https://fullnode.mainnet.sui.io:443'
-  return 'https://fullnode.testnet.sui.io:443'
-})
 
 // Package IDs dos contratos
 const MAINNET_PACKAGE_ID = '0x1c0ce5438a6797bd9cbdda86bfcc1bc8ecabd2103c5ac953ab3898cb38828b89'
@@ -264,90 +199,16 @@ function AppContent() {
     setTxDigest(null)
 
     try {
-      if (!TransactionBlock || typeof TransactionBlock !== 'function') {
-        console.error('TransactionBlock não disponível:', TransactionBlock)
-        console.log('Verificando módulo sui:', Object.keys(sui))
-        throw new Error('TransactionBlock não está disponível. Por favor, recarregue a página ou verifique o console para mais detalhes.')
-      }
-
-      console.log('✅ TransactionBlock encontrado, criando instância...')
-      let txb: any
-      
-      try {
-        txb = new TransactionBlock()
-        console.log('✅ Instância criada:', txb)
-        console.log('🔍 Métodos disponíveis:', Object.keys(txb))
-      } catch (error) {
-        console.error('❌ Erro ao criar TransactionBlock:', error)
-        throw new Error(`Erro ao criar TransactionBlock: ${error}`)
-      }
-      
-      // Verifica se tem os métodos necessários
-      if (!txb) {
-        throw new Error('TransactionBlock é null ou undefined após criação')
-      }
-
-      // Se só tem provider, o TransactionBlock pode ser usado diretamente mas precisa acessar métodos de forma diferente
-      // Na versão 0.17.0, pode ser que o objeto seja diferente
-      if (txb.provider && !txb.moveCall) {
-        console.log('🔍 TransactionBlock tem provider, verificando estrutura...')
-        console.log('📋 Provider tem:', Object.keys(txb.provider))
-        
-        // Pode ser que moveCall esteja dentro do provider ou que seja uma API diferente
-        // Vamos tentar usar o objeto diretamente mesmo assim - o wallet-kit pode aceitar
-        // Vamos construir manualmente usando o formato que o wallet-kit espera
-      }
-      
-      // Tenta usar moveCall se existir
-      if (typeof txb.moveCall === 'function') {
-        console.log('✅ Usando moveCall diretamente...')
-        txb.moveCall({
-          target: `${packageId}::nft::mint`,
-          arguments: [
-            txb.pure.string(name),
-            txb.pure.string(description),
-            txb.pure.string(uri),
-          ],
-        })
-      } else {
-        // Se não tem moveCall, pode ser que na versão 0.17.0 a API seja diferente
-        // Vamos tentar usar call ou outra forma
-        console.log('⚠️ moveCall não encontrado, tentando abordagem alternativa...')
-        
-        // Tenta usar como objeto de configuração direto para o wallet-kit
-        // O wallet-kit pode aceitar um objeto com a estrutura da transação
-        const txConfig = {
-          kind: 'moveCall' as const,
-          data: {
-            packageObjectId: packageId.split('::')[0],
-            module: 'nft',
-            function: 'mint',
-            arguments: [name, description, uri],
-            typeArguments: [],
-          },
-        }
-        
-        // Atribui ao txb de forma que o wallet-kit entenda
-        ;(txb as any).transactions = [txConfig]
-        ;(txb as any).moveCall = function(config: any) {
-          if (!this.transactions) this.transactions = []
-          this.transactions.push({
-            kind: 'moveCall',
-            data: config,
-          })
-        }
-        
-        // Agora tenta usar moveCall
-        txb.moveCall({
-          target: `${packageId}::nft::mint`,
-          arguments: [
-            name,
-            description,
-            uri,
-          ],
-        })
-      }
-
+      // Cria TransactionBlock usando a API oficial da versão 0.43.x
+      const txb = new TransactionBlock()
+      txb.moveCall({
+        target: `${packageId}::nft::mint`,
+        arguments: [
+          txb.pure.string(name),
+          txb.pure.string(description),
+          txb.pure.string(uri),
+        ],
+      })
       console.log('✅ Transação construída, enviando...')
       const result = await signAndExecuteTransactionBlock({
         transactionBlock: txb,
@@ -524,9 +385,9 @@ function AppContent() {
 }
 
 function App() {
-  // Fallback URLs caso getFullnodeUrl não funcione
-  const mainnetUrl = getFullnodeUrl ? getFullnodeUrl('mainnet') : 'https://fullnode.mainnet.sui.io:443'
-  const testnetUrl = getFullnodeUrl ? getFullnodeUrl('testnet') : 'https://fullnode.testnet.sui.io:443'
+  // URLs oficiais usando helper da lib
+  const mainnetUrl = getFullnodeUrl('mainnet')
+  const testnetUrl = getFullnodeUrl('testnet')
   
   return (
     <WalletKitProvider 
