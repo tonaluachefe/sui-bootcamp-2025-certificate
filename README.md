@@ -54,7 +54,7 @@ Output directory: `frontend/dist`
   - Owner = `tx_context::sender(ctx)`  
   - Transfers NFT to sender and emits `NFTMinted` event (id, owner, name).
 
-## Form Answers (ready to copy, English)
+## Results
 - Repository Link (public): `https://github.com/tonaluachefe/sui-bootcamp-2025-certificate`
 - Short Project Description: Simple NFT Dapp on Sui: users connect a wallet and mint NFTs with basic metadata. Built for the Sui Bootcamp final project.
 - Detailed Project Description: A lightweight NFT Dapp on the Sui blockchain. The Move contract mints an NFT using tx_context::sender as owner and emits an NFTMinted event. The React + Vite frontend integrates @mysten/wallet-kit so users can connect Sui-compatible wallets and mint NFTs by providing name, description, and image URI. The app includes network selector (mainnet/testnet) and uses the deployed package ID.
